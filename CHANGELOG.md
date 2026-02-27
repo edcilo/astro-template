@@ -81,6 +81,12 @@ All notable changes to this project will be documented in this file.
   - Reads `maxWidth` and `fullWidth` from `config.layout` — same source as header and footer
   - Uses identical pattern: array + `filter(Boolean)` + `.join(' ')` for class computation
   - Changing `config.layout.maxWidth` or `config.layout.fullWidth` now affects header, main, AND footer consistently
+- **404 error page** (`src/pages/404.astro`) — Custom "Not Found" page
+  - Large `text-9xl font-black` "404" heading in muted color (`text-gray-200` / `dark:text-gray-800`)
+  - "Page Not Found" subtitle with descriptive text
+  - "Back to Home" CTA button linking to `/` with hover transitions and dark mode support
+  - Uses `BaseLayout` with `title="Page Not Found"`
+  - Vertically and horizontally centered using same flex pattern as index page
 
 ### Changed
 
