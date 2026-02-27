@@ -17,6 +17,12 @@ const {
 	description = config.site.description,
 	lang = config.site.lang,
 } = Astro.props;
+
+const { maxWidth, fullWidth } = config.layout;
+
+const containerClasses = ['mx-auto px-4 py-8 sm:px-6 lg:px-8', fullWidth ? 'w-full' : maxWidth]
+	.filter(Boolean)
+	.join(' ');
 ---
 
 <html lang={lang}>
@@ -46,7 +52,9 @@ const {
 	<body class="min-h-screen bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
 		<Header />
 		<main>
-			<slot />
+			<div class={containerClasses}>
+				<slot />
+			</div>
 		</main>
 		<Footer />
 	</body>

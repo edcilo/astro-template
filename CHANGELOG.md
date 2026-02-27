@@ -76,6 +76,11 @@ All notable changes to this project will be documented in this file.
 - **`SocialLink`** and **`SocialPlatform`** types added — generic `{ platform, url }` for 5 supported platforms
 - **`FooterLink`** type added — `{ label, href }` for footer link items
 - **`SiteConfig.version`** — New `version` field in site config, displayed in footer brand section
+- **Main content container** — Added configurable container in `BaseLayout.astro` `<main>` element
+  - Wraps `<slot />` in a `<div>` with `mx-auto` + responsive padding (`px-4 sm:px-6 lg:px-8`) + `py-8`
+  - Reads `maxWidth` and `fullWidth` from `config.layout` — same source as header and footer
+  - Uses identical pattern: array + `filter(Boolean)` + `.join(' ')` for class computation
+  - Changing `config.layout.maxWidth` or `config.layout.fullWidth` now affects header, main, AND footer consistently
 
 ### Changed
 
