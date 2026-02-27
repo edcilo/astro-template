@@ -1,0 +1,150 @@
+---
+import type { ShadowSize } from '../config/site';
+
+interface Props {
+	sticky?: boolean;
+	fullWidth?: boolean;
+	maxWidth?: string;
+	transparent?: boolean;
+	blurred?: boolean;
+	bordered?: boolean;
+	shadow?: ShadowSize;
+}
+
+import { config } from '../config/site';
+
+import HeaderLogo from './HeaderLogo.astro';
+import HeaderNav from './HeaderNav.astro';
+import HeaderTools from './HeaderTools.astro';
+import MobileMenu from './MobileMenu.astro';
+
+const SHADOW_MAP: Record<ShadowSize, string> = {
+	none: '',
+	sm: 'shadow-sm',
+	md: 'shadow-md',
+	lg: 'shadow-lg',
+	xl: 'shadow-xl',
+};
+
+const {
+	sticky = config.header.sticky,
+	fullWidth = config.header.fullWidth,
+	maxWidth = config.header.maxWidth,
+	transparent = config.header.transparent,
+	blurred = config.header.blurred,
+	bordered = config.header.bordered,
+	shadow = config.header.shadow,
+} = Astro.props;
+
+const headerClasses = [
+	'w-full',
+	sticky && 'sticky top-0 z-50',
+	!transparent && 'bg-white/80 dark:bg-gray-900/80',
+	blurred && 'backdrop-blur-md',
+	bordered && 'border-b border-gray-200 dark:border-gray-700',
+	SHADOW_MAP[shadow],
+]
+	.filter(Boolean)
+	.join(' ');
+
+const containerClasses = [
+	'mx-auto flex items-center justify-between px-4 py-3 sm:px-6 lg:px-8',
+	fullWidth ? 'w-full' : maxWidth,
+]
+	.filter(Boolean)
+	.join(' ');
+---
+
+<header class={headerClasses}>
+	<div class={containerClasses}>
+		<HeaderLogo logo={config.header.logo} />
+		<HeaderNav />
+		<div class="hidden md:flex">
+			<HeaderTools tools={config.header.tools} />
+		</div>
+		<button
+			type="button"
+			id="mobile-menu-button"
+			aria-label="Open menu"
+			aria-expanded="false"
+			aria-controls="mobile-menu"
+			class="inline-flex items-center justify-center rounded-md p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 md:hidden dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-100"
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				class="h-5 w-5"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<line x1="3" y1="12" x2="21" y2="12"></line>
+				<line x1="3" y1="6" x2="21" y2="6"></line>
+				<line x1="3" y1="18" x2="21" y2="18"></line>
+			</svg>
+		</button>
+	</div>
+</header>
+<MobileMenu tools={config.header.tools} />
+
+<script>
+	let menuAbortController: AbortController | undefined;
+
+	function initMobileMenu(): void {
+		menuAbortController?.abort();
+		menuAbortController = new AbortController();
+		const { signal } = menuAbortController;
+
+		const menuButton = document.getElementById('mobile-menu-button');
+		const menu = document.getElementById('mobile-menu');
+		const menuPanel = document.getElementById('mobile-menu-panel');
+		const menuBackdrop = document.getElementById('mobile-menu-backdrop');
+		const closeButton = document.getElementById('mobile-menu-close');
+
+		if (!menuButton || !menu || !menuPanel || !closeButton || !menuBackdrop) return;
+
+		const openMenu = (): void => {
+			menu.classList.remove('hidden');
+			// Trigger reflow for transition
+			void menuPanel.offsetHeight;
+			menuPanel.classList.remove('translate-x-full');
+			menuPanel.classList.add('translate-x-0');
+			menuButton.setAttribute('aria-expanded', 'true');
+			document.body.classList.add('overflow-hidden');
+		};
+
+		const closeMenu = (): void => {
+			menuPanel.classList.remove('translate-x-0');
+			menuPanel.classList.add('translate-x-full');
+			menuButton.setAttribute('aria-expanded', 'false');
+			document.body.classList.remove('overflow-hidden');
+			// Wait for transition to finish before hiding
+			menuPanel.addEventListener(
+				'transitionend',
+				() => {
+					menu.classList.add('hidden');
+				},
+				{ once: true },
+			);
+		};
+
+		menuButton.addEventListener('click', openMenu, { signal });
+		closeButton.addEventListener('click', closeMenu, { signal });
+		menuBackdrop.addEventListener('click', closeMenu, { signal });
+		document.addEventListener(
+			'keydown',
+			(event: KeyboardEvent) => {
+				if (event.key === 'Escape' && !menu.classList.contains('hidden')) {
+					closeMenu();
+				}
+			},
+			{ signal },
+		);
+	}
+
+	// Support both standard page load and Astro View Transitions
+	initMobileMenu();
+	document.addEventListener('astro:after-swap', initMobileMenu);
+</script>

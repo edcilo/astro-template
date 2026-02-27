@@ -1,0 +1,95 @@
+---
+import type { LanguageConfig } from '../config/site';
+
+interface Props {
+	languages: LanguageConfig[];
+	defaultLang: string;
+}
+
+const { languages, defaultLang } = Astro.props;
+const langCodes = languages.map((l) => l.code);
+---
+
+<button
+	type="button"
+	data-lang-toggle
+	data-lang-codes={JSON.stringify(langCodes)}
+	aria-label={`Language: ${defaultLang}`}
+	class="inline-flex items-center justify-center rounded-md px-2 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-100"
+>
+	<span data-lang-current>{defaultLang.toUpperCase()}</span>
+</button>
+
+<script>
+	const LANG_KEY = 'lang';
+
+	function getStoredLang(): string | null {
+		return localStorage.getItem(LANG_KEY);
+	}
+
+	function getLangCodes(): string[] {
+		const firstButton = document.querySelector<HTMLButtonElement>('[data-lang-toggle]');
+		if (!firstButton) return ['en'];
+		const codesAttr = firstButton.getAttribute('data-lang-codes');
+		if (!codesAttr) return ['en'];
+		try {
+			return JSON.parse(codesAttr) as string[];
+		} catch {
+			return ['en'];
+		}
+	}
+
+	function getValidLang(stored: string | null, codes: string[]): string {
+		if (stored && codes.includes(stored)) return stored;
+		return codes[0] ?? 'en';
+	}
+
+	function applyLang(code: string): void {
+		document.documentElement.setAttribute('lang', code);
+	}
+
+	function updateAllButtons(code: string): void {
+		const buttons = document.querySelectorAll<HTMLButtonElement>('[data-lang-toggle]');
+		buttons.forEach((btn) => {
+			const span = btn.querySelector<HTMLSpanElement>('[data-lang-current]');
+			if (span) span.textContent = code.toUpperCase();
+			btn.setAttribute('aria-label', `Language: ${code}`);
+		});
+	}
+
+	function handleLangClick(): void {
+		const codes = getLangCodes();
+		const stored = getStoredLang();
+		const current = getValidLang(stored, codes);
+		const currentIndex = codes.indexOf(current);
+		const nextLang = codes[(currentIndex + 1) % codes.length];
+		if (!nextLang) return;
+
+		localStorage.setItem(LANG_KEY, nextLang);
+		applyLang(nextLang);
+		updateAllButtons(nextLang);
+	}
+
+	function initLanguageToggle(): void {
+		const buttons = document.querySelectorAll<HTMLButtonElement>('[data-lang-toggle]');
+		if (buttons.length === 0) return;
+
+		const codes = getLangCodes();
+
+		// Apply initial language
+		const stored = getStoredLang();
+		const currentLang = getValidLang(stored, codes);
+		applyLang(currentLang);
+		updateAllButtons(currentLang);
+		if (!stored) localStorage.setItem(LANG_KEY, currentLang);
+
+		// Attach click handlers — use named function for removeEventListener
+		buttons.forEach((btn) => {
+			btn.removeEventListener('click', handleLangClick);
+			btn.addEventListener('click', handleLangClick);
+		});
+	}
+
+	initLanguageToggle();
+	document.addEventListener('astro:after-swap', initLanguageToggle);
+</script>

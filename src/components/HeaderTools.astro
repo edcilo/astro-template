@@ -1,0 +1,23 @@
+---
+import type { ToolsConfig } from '../config/site';
+
+interface Props {
+	tools: ToolsConfig;
+}
+
+import { config } from '../config/site';
+
+import LanguageToggle from './LanguageToggle.astro';
+import ThemeToggle from './ThemeToggle.astro';
+
+const { tools } = Astro.props;
+---
+
+<div class="flex items-center gap-2">
+	{
+		tools.languageToggle && (
+			<LanguageToggle languages={config.site.languages} defaultLang={config.site.lang} />
+		)
+	}
+	{tools.themeToggle && <ThemeToggle />}
+</div>

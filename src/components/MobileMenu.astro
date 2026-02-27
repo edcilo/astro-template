@@ -1,0 +1,61 @@
+---
+import type { ToolsConfig } from '../config/site';
+
+interface Props {
+	tools: ToolsConfig;
+}
+
+import HeaderTools from './HeaderTools.astro';
+
+const { tools } = Astro.props;
+---
+
+<div id="mobile-menu" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
+	<!-- Backdrop oscuro -->
+	<div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/20 backdrop-blur-sm"></div>
+
+	<!-- Drawer panel (entra por la derecha) -->
+	<div
+		id="mobile-menu-panel"
+		class="fixed inset-y-0 right-0 w-full max-w-xs translate-x-full bg-white shadow-xl transition-transform duration-300 ease-in-out dark:bg-gray-900"
+	>
+		<!-- Header del drawer con botón cerrar -->
+		<div class="flex items-center justify-between px-4 py-3">
+			<span class="text-lg font-semibold text-gray-900 dark:text-gray-100">Menu</span>
+			<button
+				type="button"
+				id="mobile-menu-close"
+				aria-label="Close menu"
+				class="inline-flex items-center justify-center rounded-md p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-100"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-5 w-5"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</button>
+		</div>
+
+		<!-- Contenido del drawer -->
+		<div class="flex flex-col gap-6 px-4 py-6">
+			<!-- Navegación -->
+			<nav aria-label="Mobile navigation" class="flex flex-col gap-4">
+				<!-- Vacío por ahora, listo para links futuros -->
+			</nav>
+
+			<!-- Separador -->
+			<hr class="border-gray-200 dark:border-gray-700" />
+
+			<!-- Herramientas -->
+			<HeaderTools tools={tools} />
+		</div>
+	</div>
+</div>

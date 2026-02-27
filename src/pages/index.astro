@@ -1,21 +1,14 @@
 ---
-import '../styles/global.css';
-
-const title = 'edc-template';
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>{title}</title>
-	</head>
-	<body class="flex min-h-screen items-center justify-center bg-white text-gray-900">
-		<main class="text-center">
+<BaseLayout>
+	<div class="flex min-h-[calc(100vh-56px)] items-center justify-center">
+		<div class="text-center">
 			<h1 class="text-4xl font-bold">edc-template</h1>
-			<p class="mt-4 text-lg text-gray-600">Astro 5 + Tailwind CSS v4 + TypeScript</p>
-		</main>
-	</body>
-</html>
+			<p class="mt-4 text-lg text-gray-600 dark:text-gray-400">
+				Astro 5 + Tailwind CSS v4 + TypeScript
+			</p>
+		</div>
+	</div>
+</BaseLayout>
