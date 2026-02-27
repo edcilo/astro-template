@@ -46,16 +46,16 @@ npx vitest run src/path/to/file.test.ts
 ├── public/                # Static assets (favicon, images, fonts)
 ├── src/
 │   ├── components/        # Reusable .astro components (PascalCase)
-│   ├── config/            # Site-wide typed configuration (site.ts)
+│   ├── config/            # Site-wide configuration (site.ts, etc.)
 │   ├── content/           # Content collections (Markdown/MDX)
-│   ├── layouts/           # Page layouts (BaseLayout.astro)
+│   ├── layouts/           # Page layouts (BaseLayout.astro, etc.)
 │   ├── lib/               # Utility functions and shared logic
 │   ├── pages/             # File-based routing (kebab-case filenames)
 │   ├── styles/            # Global CSS — global.css imports Tailwind
 │   └── tests/             # Test files (*.test.ts)
 ├── astro.config.mjs       # Astro + Tailwind Vite plugin
 ├── eslint.config.mjs      # ESLint 9 flat config
-├── prettier.config.mjs    # Prettier (plugins: astro, tailwindcss)
+├── prettier.config.mjs    # Prettier config (plugins: astro, tailwindcss)
 ├── vitest.config.ts       # Vitest via Astro's getViteConfig
 ├── tsconfig.json          # Extends astro/tsconfigs/strict
 └── .editorconfig          # Tabs for .astro, 2 spaces for everything else
@@ -95,7 +95,8 @@ Sub-components receive only the data they need via typed props.
 
 ## Code Style
 
-Enforced by Prettier (`prettier-plugin-astro` + `prettier-plugin-tailwindcss`) and EditorConfig:
+Enforced by Prettier (`prettier.config.mjs` with `prettier-plugin-astro` and
+`prettier-plugin-tailwindcss`) and EditorConfig:
 
 | Rule            | Value                                    |
 | --------------- | ---------------------------------------- |
@@ -120,11 +121,14 @@ Enforced by Prettier (`prettier-plugin-astro` + `prettier-plugin-tailwindcss`) a
 
 ## Imports
 
-Order: (1) type-only, (2) Node builtins, (3) external packages, (4) internal modules,
-(5) relative. Separate each group with a blank line.
+Order: (1) type-only imports, (2) Node builtins, (3) external packages,
+(4) internal modules, (5) relative. Separate each group with a blank line.
+Use named exports; avoid `export default` except in Astro config and page files.
 
 ```ts
 import type { ShadowSize } from '../config/site';
+
+import path from 'node:path';
 
 import { config } from '../config/site';
 
@@ -141,11 +145,27 @@ Use named exports; avoid `export default` except in Astro config and page files.
 - Client-side interactivity uses `<script>` tags (no UI framework).
 - Use `AbortController` pattern for event listeners to support View Transitions.
 
+```astro
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<section>
+  <h2>{title}</h2>
+  {description && <p>{description}</p>}
+</section>
+```
+
 ## Styling (Tailwind CSS v4)
 
 - Tailwind is loaded via `@tailwindcss/vite` in `astro.config.mjs` — NOT `@astrojs/tailwind`.
 - Global entry: `src/styles/global.css` with `@import 'tailwindcss'`.
-- Dark mode: `@custom-variant dark (&:where(.dark, .dark *))` (class-based).
+- Dark mode uses `@custom-variant dark (&:where(.dark, .dark *))` (class-based).
 - Customize with `@theme {}` blocks in CSS — there is no `tailwind.config.js`.
 - Use scoped `<style>` blocks for non-Tailwind component styles.
 - Avoid `!important`; refactor specificity instead.
@@ -158,22 +178,22 @@ Use named exports; avoid `export default` except in Astro config and page files.
 - Use `.test.ts` suffix (not `.spec.ts`).
 - Import from `vitest`: `import { describe, it, expect } from 'vitest';`
 
-## ESLint
-
-- Flat config (`eslint.config.mjs`) with `typescript-eslint` (unified package).
-- Includes `eslint-plugin-astro` for `.astro` file linting.
-- `eslint-config-prettier` must always be the **last** entry.
-- `@typescript-eslint/no-explicit-any` is set to `error`.
-- **Known issue:** `astro-eslint-parser` triggers false-positive `no-unsafe-return` inside
-  `.map()` calls in Astro templates. Suppress with `// eslint-disable-next-line` per the
-  existing pattern in `HeaderNav.astro`, `MobileMenu.astro`, and `FooterContact.astro`.
-
 ## Error Handling
 
 - Never silently swallow errors.
 - Use try/catch in data-fetching frontmatter; log meaningful messages.
 - Throw in library code (`src/lib/`); catch at page/layout boundary.
 - Return user-friendly fallback UI when data is unavailable.
+
+## ESLint
+
+- Flat config (`eslint.config.mjs`) using `defineConfig` from `eslint/config`.
+- Type-checked rules via `typescript-eslint` (unified `typescript-eslint` package —
+  not the separate `@typescript-eslint/parser` or `@typescript-eslint/eslint-plugin`).
+- Includes `eslint-plugin-astro` for `.astro` file linting.
+- `eslint-config-prettier` must always be the **last** entry in the config.
+- `@typescript-eslint/no-explicit-any` is set to `error`.
+- Ignored paths: `dist/`, `.astro/`, `node_modules/`.
 
 ## Git
 
