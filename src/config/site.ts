@@ -71,7 +71,14 @@ const config: Config = {
       src: '/logo.svg',
       alt: 'edc-template logo',
     },
-    navigation: [],
+    navigation: [
+      { label: 'Home', href: '/' },
+      { label: 'About', href: '/about' },
+      { label: 'Services', href: '/services' },
+      { label: 'Blog', href: '/blog' },
+      { label: 'Projects', href: '/projects' },
+      { label: 'Contact', href: '/contact' },
+    ],
     tools: {
       themeToggle: true,
       languageToggle: true,

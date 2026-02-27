@@ -58,7 +58,7 @@ const containerClasses = [
 <header class={headerClasses}>
 	<div class={containerClasses}>
 		<HeaderLogo logo={config.header.logo} />
-		<HeaderNav />
+		<HeaderNav navigation={config.header.navigation} />
 		<div class="hidden md:flex">
 			<HeaderTools tools={config.header.tools} />
 		</div>
@@ -87,7 +87,7 @@ const containerClasses = [
 		</button>
 	</div>
 </header>
-<MobileMenu tools={config.header.tools} />
+<MobileMenu tools={config.header.tools} navigation={config.header.navigation} />
 
 <script>
 	let menuAbortController: AbortController | undefined;

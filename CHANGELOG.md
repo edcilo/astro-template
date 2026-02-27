@@ -54,6 +54,13 @@ All notable changes to this project will be documented in this file.
   - Dark mode classes on dropdown, options, and trigger
   - No real translation — placeholder for future i18n integration
 - **`LanguageConfig` type** added to `src/config/site.ts` with `languages` array in site config
+- **Navigation links** — 6 configurable links rendered in desktop nav and mobile drawer
+  - `HeaderNav.astro` updated to accept `navigation: NavigationItem[]` prop and render anchor links
+  - `MobileMenu.astro` updated to accept `navigation: NavigationItem[]` prop and render mobile-friendly links
+  - Active page detection via `Astro.url.pathname` with `aria-current="page"` for accessibility
+  - Desktop: `text-sm font-medium` with hover/active color transitions and dark mode support
+  - Mobile: `text-base font-medium` with rounded tap targets, background highlight on active/hover
+  - 6 test links configured in `src/config/site.ts`: Home, About, Services, Blog, Projects, Contact
 
 ### Changed
 
@@ -62,6 +69,9 @@ All notable changes to this project will be documented in this file.
 - `HeaderLogo` receives `logo: LogoConfig` prop (dynamic src/alt)
 - `HeaderTools` receives `tools: ToolsConfig` prop (conditional rendering of toggles)
 - `MobileMenu` receives `tools: ToolsConfig` prop and passes to `HeaderTools`
+- `HeaderNav` now receives `navigation: NavigationItem[]` prop (no longer empty placeholder)
+- `MobileMenu` now receives `navigation: NavigationItem[]` prop for mobile nav links
+- `Header.astro` passes `config.header.navigation` to both `HeaderNav` and `MobileMenu`
 - Mobile menu JS init changed from `astro:page-load` to direct call + `astro:after-swap`
 - `HeaderLogo` changed from `<img>` to inline SVG with `fill="currentColor"` and `fill-rule="evenodd"` for dark mode support
 - `ThemeToggle` changed from IDs to `data-*` attributes for multi-instance sync
