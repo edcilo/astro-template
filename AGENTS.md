@@ -5,7 +5,7 @@
 ## Project Overview
 
 Astro 5 static site template. ESM-only, pure `.astro` components (no UI framework).
-Styled with Tailwind CSS v4 (CSS-first config, no `tailwind.config.js`).
+Styled with Tailwind CSS v4 (CSS-first config — there is **no** `tailwind.config.js`).
 
 | Field           | Value                           |
 | --------------- | ------------------------------- |
@@ -40,7 +40,7 @@ npx vitest run src/tests/setup.test.ts
 npx vitest run src/path/to/file.test.ts
 ```
 
-Always run `npm run validate` before committing.
+**Always run `npm run validate` before committing.**
 
 ## Project Structure
 
@@ -48,15 +48,16 @@ Always run `npm run validate` before committing.
 ├── public/                # Static assets (favicon, images, fonts)
 ├── src/
 │   ├── components/        # Reusable .astro components (PascalCase)
+│   ├── config/            # Site-wide configuration (site.ts, etc.)
+│   ├── content/           # Content collections (Markdown/MDX)
 │   ├── layouts/           # Page layouts (BaseLayout.astro, etc.)
+│   ├── lib/               # Utility functions and shared logic
 │   ├── pages/             # File-based routing (kebab-case filenames)
 │   ├── styles/            # Global CSS — global.css imports Tailwind
-│   ├── lib/               # Utility functions and shared logic
-│   ├── content/           # Content collections (Markdown/MDX)
 │   └── tests/             # Test files (*.test.ts)
 ├── astro.config.mjs       # Astro + Tailwind Vite plugin
 ├── eslint.config.mjs      # ESLint 9 flat config
-├── prettier.config.mjs    # Prettier config
+├── prettier.config.mjs    # Prettier config (plugins: astro, tailwindcss)
 ├── vitest.config.ts       # Vitest via Astro's getViteConfig
 ├── tsconfig.json          # Extends astro/tsconfigs/strict
 └── .editorconfig          # Tabs for .astro, 2 spaces for everything else
@@ -74,7 +75,8 @@ Create directories only when adding the first file to them.
 
 ## Code Style
 
-Enforced by Prettier (`prettier.config.mjs`) and EditorConfig:
+Enforced by Prettier (`prettier.config.mjs` with `prettier-plugin-astro` and
+`prettier-plugin-tailwindcss`) and EditorConfig:
 
 | Rule            | Value                                    |
 | --------------- | ---------------------------------------- |
@@ -101,11 +103,13 @@ Enforced by Prettier (`prettier.config.mjs`) and EditorConfig:
 
 ## Imports
 
-Order: (1) Node builtins, (2) external packages, (3) internal modules, (4) relative.
-Separate each group with a blank line. Use named exports; avoid `export default`
-except in Astro config and page files.
+Order: (1) type-only imports, (2) Node builtins, (3) external packages,
+(4) internal modules, (5) relative. Separate each group with a blank line.
+Use named exports; avoid `export default` except in Astro config and page files.
 
 ```ts
+import type { ShadowSize } from '../config/site';
+
 import path from 'node:path';
 
 import { defineConfig } from 'astro/config';
@@ -120,6 +124,8 @@ import Header from '../components/Header.astro';
 - All logic goes in the frontmatter fence (`---`).
 - Type props with a `Props` interface at the top of frontmatter.
 - Keep templates declarative — extract complex logic to `src/lib/`.
+- Client-side interactivity uses `<script>` tags (no UI framework).
+- Use `AbortController` pattern for event listeners to support View Transitions.
 
 ```astro
 ---
@@ -141,6 +147,7 @@ const { title, description } = Astro.props;
 
 - Tailwind is loaded via `@tailwindcss/vite` in `astro.config.mjs` — NOT `@astrojs/tailwind`.
 - Global entry: `src/styles/global.css` with `@import 'tailwindcss'`.
+- Dark mode uses `@custom-variant dark (&:where(.dark, .dark *))` (class-based).
 - Customize with `@theme {}` blocks in CSS — there is no `tailwind.config.js`.
 - Use scoped `<style>` blocks for non-Tailwind component styles.
 - Avoid `!important`; refactor specificity instead.
@@ -148,8 +155,10 @@ const { title, description } = Astro.props;
 ## Testing
 
 - Runner: Vitest 4.x, configured via `getViteConfig` from Astro.
+- Test pattern: `src/**/*.test.ts` (configured in `vitest.config.ts`).
 - Place tests in `src/tests/` or co-locate as `*.test.ts` next to source.
 - Use `.test.ts` suffix (not `.spec.ts`).
+- Import from `vitest`: `import { describe, it, expect } from 'vitest';`
 
 ## Error Handling
 
@@ -161,10 +170,12 @@ const { title, description } = Astro.props;
 ## ESLint
 
 - Flat config (`eslint.config.mjs`) using `defineConfig` from `eslint/config`.
-- Type-checked rules via `typescript-eslint` (unified package — not the separate
-  `@typescript-eslint/parser` or `@typescript-eslint/eslint-plugin`).
-- `eslint-config-prettier` must always be the LAST entry in the config.
+- Type-checked rules via `typescript-eslint` (unified `typescript-eslint` package —
+  not the separate `@typescript-eslint/parser` or `@typescript-eslint/eslint-plugin`).
+- Includes `eslint-plugin-astro` for `.astro` file linting.
+- `eslint-config-prettier` must always be the **last** entry in the config.
 - `@typescript-eslint/no-explicit-any` is set to `error`.
+- Ignored paths: `dist/`, `.astro/`, `node_modules/`.
 
 ## Git
 
