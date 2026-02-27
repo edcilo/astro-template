@@ -5,7 +5,7 @@
 ## Project Overview
 
 Astro 5 static site template. ESM-only, pure `.astro` components (no UI framework).
-Styled with Tailwind CSS v4 (CSS-first config, no `tailwind.config.js`).
+Styled with Tailwind CSS v4 (CSS-first config — there is **no** `tailwind.config.js`).
 
 | Field           | Value                           |
 | --------------- | ------------------------------- |
@@ -19,10 +19,8 @@ Styled with Tailwind CSS v4 (CSS-first config, no `tailwind.config.js`).
 ## Commands
 
 ```bash
-npm install                # Install dependencies
 npm run dev                # Dev server at localhost:4321
 npm run build              # Production build → ./dist/
-npm run preview            # Preview production build locally
 npm run check              # TypeScript & Astro diagnostics
 npm run lint               # ESLint (flat config, type-checked)
 npm run lint:fix           # ESLint with auto-fix
@@ -40,7 +38,7 @@ npx vitest run src/tests/setup.test.ts
 npx vitest run src/path/to/file.test.ts
 ```
 
-Always run `npm run validate` before committing.
+**Always run `npm run validate` before committing.**
 
 ## Project Structure
 
@@ -48,21 +46,44 @@ Always run `npm run validate` before committing.
 ├── public/                # Static assets (favicon, images, fonts)
 ├── src/
 │   ├── components/        # Reusable .astro components (PascalCase)
-│   ├── layouts/           # Page layouts (BaseLayout.astro, etc.)
+│   ├── config/            # Site-wide typed configuration (site.ts)
+│   ├── content/           # Content collections (Markdown/MDX)
+│   ├── layouts/           # Page layouts (BaseLayout.astro)
+│   ├── lib/               # Utility functions and shared logic
 │   ├── pages/             # File-based routing (kebab-case filenames)
 │   ├── styles/            # Global CSS — global.css imports Tailwind
-│   ├── lib/               # Utility functions and shared logic
-│   ├── content/           # Content collections (Markdown/MDX)
 │   └── tests/             # Test files (*.test.ts)
 ├── astro.config.mjs       # Astro + Tailwind Vite plugin
 ├── eslint.config.mjs      # ESLint 9 flat config
-├── prettier.config.mjs    # Prettier config
+├── prettier.config.mjs    # Prettier (plugins: astro, tailwindcss)
 ├── vitest.config.ts       # Vitest via Astro's getViteConfig
 ├── tsconfig.json          # Extends astro/tsconfigs/strict
 └── .editorconfig          # Tabs for .astro, 2 spaces for everything else
 ```
 
 Create directories only when adding the first file to them.
+
+## Configuration Architecture
+
+All site config lives in `src/config/site.ts` as a single typed `Config` object:
+
+- **`site`** — title, description, lang, version, theme, languages
+- **`layout`** — shared `maxWidth` and `fullWidth` (used by header AND footer containers)
+- **`header`** — sticky, transparent, blurred, bordered, shadow, logo, navigation, tools
+- **`footer`** — brand (logo, version, description), links, contact (email, socialLinks)
+
+When adding configurable UI, add types and data here. Both header and footer read
+`config.layout.maxWidth` / `config.layout.fullWidth` for consistent container widths.
+
+## Component Patterns
+
+Components follow an **orchestrator + sub-component** pattern:
+
+- `Header.astro` → `HeaderLogo`, `HeaderNav`, `HeaderTools`, `MobileMenu`
+- `Footer.astro` → `FooterBrand`, `FooterLinks`, `FooterContact`
+
+The orchestrator reads from `config`, computes container classes, and passes props down.
+Sub-components receive only the data they need via typed props.
 
 ## TypeScript
 
@@ -74,7 +95,7 @@ Create directories only when adding the first file to them.
 
 ## Code Style
 
-Enforced by Prettier (`prettier.config.mjs`) and EditorConfig:
+Enforced by Prettier (`prettier-plugin-astro` + `prettier-plugin-tailwindcss`) and EditorConfig:
 
 | Rule            | Value                                    |
 | --------------- | ---------------------------------------- |
@@ -84,7 +105,6 @@ Enforced by Prettier (`prettier.config.mjs`) and EditorConfig:
 | Quotes          | Single in JS/TS; double in HTML attrs    |
 | Trailing commas | Always in multi-line structures          |
 | Line endings    | LF                                       |
-| File encoding   | UTF-8                                    |
 
 ## Naming Conventions
 
@@ -93,54 +113,39 @@ Enforced by Prettier (`prettier.config.mjs`) and EditorConfig:
 | Astro components | PascalCase                   | `NavBar.astro`           |
 | Pages            | kebab-case                   | `about-us.astro`         |
 | TS/JS files      | camelCase                    | `formatDate.ts`          |
-| Interfaces       | PascalCase                   | `interface UserProfile`  |
-| Types            | PascalCase                   | `type ButtonVariant`     |
+| Interfaces/Types | PascalCase                   | `interface UserProfile`  |
 | Constants        | UPPER_SNAKE_CASE             | `const MAX_RETRIES = 3;` |
 | CSS classes      | Tailwind utils or kebab-case | `.hero-section`          |
 | Env variables    | `PUBLIC_` prefix for client  | `PUBLIC_API_URL`         |
 
 ## Imports
 
-Order: (1) Node builtins, (2) external packages, (3) internal modules, (4) relative.
-Separate each group with a blank line. Use named exports; avoid `export default`
-except in Astro config and page files.
+Order: (1) type-only, (2) Node builtins, (3) external packages, (4) internal modules,
+(5) relative. Separate each group with a blank line.
 
 ```ts
-import path from 'node:path';
+import type { ShadowSize } from '../config/site';
 
-import { defineConfig } from 'astro/config';
-
-import { formatDate } from '@/lib/formatDate';
+import { config } from '../config/site';
 
 import Header from '../components/Header.astro';
 ```
+
+Use named exports; avoid `export default` except in Astro config and page files.
 
 ## Astro Components
 
 - All logic goes in the frontmatter fence (`---`).
 - Type props with a `Props` interface at the top of frontmatter.
 - Keep templates declarative — extract complex logic to `src/lib/`.
-
-```astro
----
-interface Props {
-  title: string;
-  description?: string;
-}
-
-const { title, description } = Astro.props;
----
-
-<section>
-  <h2>{title}</h2>
-  {description && <p>{description}</p>}
-</section>
-```
+- Client-side interactivity uses `<script>` tags (no UI framework).
+- Use `AbortController` pattern for event listeners to support View Transitions.
 
 ## Styling (Tailwind CSS v4)
 
 - Tailwind is loaded via `@tailwindcss/vite` in `astro.config.mjs` — NOT `@astrojs/tailwind`.
 - Global entry: `src/styles/global.css` with `@import 'tailwindcss'`.
+- Dark mode: `@custom-variant dark (&:where(.dark, .dark *))` (class-based).
 - Customize with `@theme {}` blocks in CSS — there is no `tailwind.config.js`.
 - Use scoped `<style>` blocks for non-Tailwind component styles.
 - Avoid `!important`; refactor specificity instead.
@@ -148,8 +153,20 @@ const { title, description } = Astro.props;
 ## Testing
 
 - Runner: Vitest 4.x, configured via `getViteConfig` from Astro.
+- Test pattern: `src/**/*.test.ts` (configured in `vitest.config.ts`).
 - Place tests in `src/tests/` or co-locate as `*.test.ts` next to source.
 - Use `.test.ts` suffix (not `.spec.ts`).
+- Import from `vitest`: `import { describe, it, expect } from 'vitest';`
+
+## ESLint
+
+- Flat config (`eslint.config.mjs`) with `typescript-eslint` (unified package).
+- Includes `eslint-plugin-astro` for `.astro` file linting.
+- `eslint-config-prettier` must always be the **last** entry.
+- `@typescript-eslint/no-explicit-any` is set to `error`.
+- **Known issue:** `astro-eslint-parser` triggers false-positive `no-unsafe-return` inside
+  `.map()` calls in Astro templates. Suppress with `// eslint-disable-next-line` per the
+  existing pattern in `HeaderNav.astro`, `MobileMenu.astro`, and `FooterContact.astro`.
 
 ## Error Handling
 
@@ -157,14 +174,6 @@ const { title, description } = Astro.props;
 - Use try/catch in data-fetching frontmatter; log meaningful messages.
 - Throw in library code (`src/lib/`); catch at page/layout boundary.
 - Return user-friendly fallback UI when data is unavailable.
-
-## ESLint
-
-- Flat config (`eslint.config.mjs`) using `defineConfig` from `eslint/config`.
-- Type-checked rules via `typescript-eslint` (unified package — not the separate
-  `@typescript-eslint/parser` or `@typescript-eslint/eslint-plugin`).
-- `eslint-config-prettier` must always be the LAST entry in the config.
-- `@typescript-eslint/no-explicit-any` is set to `error`.
 
 ## Git
 

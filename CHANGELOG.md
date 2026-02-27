@@ -61,9 +61,29 @@ All notable changes to this project will be documented in this file.
   - Desktop: `text-sm font-medium` with hover/active color transitions and dark mode support
   - Mobile: `text-base font-medium` with rounded tap targets, background highlight on active/hover
   - 6 test links configured in `src/config/site.ts`: Home, About, Services, Blog, Projects, Contact
+- **Footer component system** — Configurable three-section footer (brand, links, contact)
+  - `Footer.astro` — Orchestrator with responsive grid layout (3 columns on desktop, stacked on mobile) and copyright bar with dynamic year
+  - `FooterBrand.astro` — Logo (same SVG as header), version badge, and optional description tagline
+  - `FooterLinks.astro` — Renders configurable list of links (privacy, terms, sitemap)
+  - `FooterContact.astro` — Email mailto link + social media icons (Facebook, X, Instagram, LinkedIn, GitHub) as inline SVGs with `target="_blank"` and `rel="noopener noreferrer"`
+  - Social icons use Lucide/Feather stroke style (`h-5 w-5`) with hover color transitions
+  - All sections conditionally render based on config flags (`showLogo`, `showVersion`, etc.)
+  - Container shares `maxWidth`/`fullWidth` with header via `config.layout`
+- **`LayoutConfig`** — New shared layout configuration extracted from `HeaderConfig`
+  - `maxWidth` and `fullWidth` now live in `config.layout`, consumed by both header and footer
+  - Changing `config.layout.maxWidth` affects both header and footer containers
+- **`FooterConfig`** type added to `src/config/site.ts` with `brand`, `links`, `contact` sections
+- **`SocialLink`** and **`SocialPlatform`** types added — generic `{ platform, url }` for 5 supported platforms
+- **`FooterLink`** type added — `{ label, href }` for footer link items
+- **`SiteConfig.version`** — New `version` field in site config, displayed in footer brand section
 
 ### Changed
 
+- **`Header.astro`** reads `maxWidth`/`fullWidth` from `config.layout` instead of `config.header` (layout refactor)
+- **`HeaderConfig`** no longer contains `maxWidth` or `fullWidth` — migrated to `LayoutConfig`
+- **`BaseLayout.astro`** now includes `<Footer />` after `<main>` and before `</body>`
+- **`Config`** interface updated: added `layout: LayoutConfig` and `footer: FooterConfig` sections
+- Type exports updated and alphabetically sorted: added `FooterConfig`, `FooterLink`, `LayoutConfig`, `SocialLink`, `SocialPlatform`
 - `BaseLayout` props now optional with defaults from `config.site`
 - `Header` props defaults sourced from `config.header` instead of hardcoded values
 - `HeaderLogo` receives `logo: LogoConfig` prop (dynamic src/alt)
@@ -84,6 +104,9 @@ All notable changes to this project will be documented in this file.
 
 ### Technical Notes
 
+- Footer uses same container pattern as Header: `mx-auto` + responsive padding + `layout.fullWidth ? 'w-full' : layout.maxWidth`
+- Social icons use `set:html` directive with hardcoded SVG paths (safe, no user input)
+- Footer grid: `grid grid-cols-1 gap-8 py-12 md:grid-cols-3`
 - Header uses conditional class computation in frontmatter with `filter(Boolean).join(' ')`
 - Shadow prop uses enum-to-class mapping (`'none' | 'sm' | 'md' | 'lg' | 'xl'`) with `Record<ShadowSize, string>`
 - Mobile menu JS uses direct init + `astro:after-swap` for View Transitions compatibility

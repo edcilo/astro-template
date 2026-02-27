@@ -1,0 +1,39 @@
+---
+import { config } from '../config/site';
+
+import FooterBrand from './FooterBrand.astro';
+import FooterContact from './FooterContact.astro';
+import FooterLinks from './FooterLinks.astro';
+
+const { layout, footer, site } = config;
+
+const containerClasses = [
+	'mx-auto px-4 sm:px-6 lg:px-8',
+	layout.fullWidth ? 'w-full' : layout.maxWidth,
+]
+	.filter(Boolean)
+	.join(' ');
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800">
+	<div class={containerClasses}>
+		<div class="grid grid-cols-1 gap-8 py-12 md:grid-cols-3">
+			<FooterBrand
+				showLogo={footer.brand.showLogo}
+				showVersion={footer.brand.showVersion}
+				version={site.version}
+				description={footer.brand.description}
+			/>
+			<FooterLinks links={footer.links} />
+			<FooterContact email={footer.contact.email} socialLinks={footer.contact.socialLinks} />
+		</div>
+		<div class="border-t border-gray-200 py-6 dark:border-gray-700">
+			<p class="text-center text-sm text-gray-500 dark:text-gray-400">
+				&copy; {currentYear}
+				{site.title}. All rights reserved.
+			</p>
+		</div>
+	</div>
+</footer>
